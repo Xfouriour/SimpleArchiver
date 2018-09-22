@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Archiver
+namespace SimpleArchiver
 {
     class FrequencyTable //для хранения частоты встречи байта в данных
     {

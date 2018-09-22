@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 
-namespace Archiver
+namespace SimpleArchiver
 {
     static class Control //для управления сжатием
     {
@@ -35,7 +35,6 @@ namespace Archiver
 
             //строим бинарное дерево и получаем таблицу кодов
             BinaryTree tree = new BinaryTree(frequency);
-            tree.BuildTree();
             Dictionary<byte, short[]> codeTable = tree.GetCodeTable(frequency);
 
             //открываем файлы, пишем таблицу частот
@@ -53,7 +52,8 @@ namespace Archiver
             //упаковываем
             int outPos = 0; //текущий индекс в выходном массиве в _битах_
             byte[] outBuf = new byte[32]; //выходной массив
-            while ((bytesRead = InputFile.ReadFile(buf, size)) > 0)
+            bytesRead = InputFile.ReadFile(buf, size);
+            while (bytesRead > 0)
             {
                 for (byte i = 0; i < bytesRead; i++)
                 {
@@ -71,6 +71,7 @@ namespace Archiver
                         }
                     }
                 }
+                bytesRead = InputFile.ReadFile(buf, size);
             }
             if (outPos > 0) //запись оставшихся бит
             {
@@ -110,20 +111,25 @@ namespace Archiver
 
             //создаем дерево
             BinaryTree tree = new BinaryTree(frequency);
-            tree.BuildTree();
 
             //распаковываем
             FileOperation outputFile = new FileOperation(inputFilePath.Substring(0, inputFilePath.Length - 4), false); //убираем расширение .pac
-
+            
             int outPos = 0, outVal;
             buf = new byte[size];
             byte[] outBuf = new byte[size];
-            while ((bytesRead = inputFile.ReadFile(buf, size)) > 0)
+
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch(); //debug
+            timer.Start(); //debug
+
+            bytesRead = inputFile.ReadFile(buf, size);
+            while (bytesRead > 0)
             {
-                for (short i = 0; i < bytesRead * 8 - (endBytes[0] * inputFile.EndOfFile()); i++) //нумеруем _биты_
+                int emptyBits = endBytes[0] * inputFile.EndOfFile();
+                for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
                 {
-                    byte value = buf[i / 8];
-                    byte bit = (byte)(((buf[i / 8] & (byte)Math.Pow(2, 7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
+                    byte value = buf[i >> 3];
+                    byte bit = (byte)(((buf[i >> 3] & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
                     outVal = tree.Decode(bit); //поочередно отправляем биты расшифровщику. если результат положительный - мы получили значение
                     if (outVal >= 0)
                     {
@@ -136,12 +142,18 @@ namespace Archiver
                         }
                     }
                 }
+                bytesRead = inputFile.ReadFile(buf, size);
             }
             //записываем оставшиеся байты, закрываем файлы
             if (outPos > 0)
             {
                 outputFile.WriteFile(outBuf, outPos);
             }
+
+            timer.Stop(); //debug
+            float ms = timer.ElapsedMilliseconds; //debug
+            Console.WriteLine("Average unpacking speed: " + (int)((inputFile.GetPos() / 1024) / (ms / 1000)) + " kb\\s"); //debug
+
             outputFile.CloseFile();
             inputFile.CloseFile();
             return 1;

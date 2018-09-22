@@ -1,84 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Archiver
+namespace SimpleArchiver
 {
     class BinaryTree //класс для хранения кодов сжатия
     {
         private List<TreeNode> nodeList;
         private TreeNode decodeNode;
-
-        private class TreeNode: IComparable<TreeNode>
-        {
-            public TreeNode childA;
-            public TreeNode childB;
-
-            public byte value;
-            public long weight;
-            public bool hasValue = false;
-
-            public TreeNode(long _weight, byte _value)
-            {
-                hasValue = true;
-                weight = _weight;
-                value = _value;
-            }
-
-            public TreeNode(long _weight, TreeNode _childA, TreeNode _childB)
-            {
-                weight = _weight;
-                childA = _childA;
-                childB = _childB;
-            }
-
-            public int CompareTo(TreeNode node)
-            {
-                if (this.weight > node.weight)
-                    return 1;
-                else if (this.weight < node.weight)
-                    return -1;
-                return 0;
-            }
-        }
-
-        private class Stack
-        {
-            short size;
-            short[] dump;
-            short index;
-            public Stack(short _size)
-            {
-                dump = new short[_size];
-                size = _size;
-                index = 0;
-            }
-
-            public void Push(short value)
-            {
-                if (index >= size)
-                    return;
-                dump[index] = value;
-                index++;
-            }
-
-            public short Pop()
-            {
-                if (index < 1)
-                    return -1;
-                return dump[--index];
-            }
-            
-            public short[] GetDump(out short position)
-            {
-                position = index;
-                return dump;
-            }
-
-            public void Reset()
-            {
-                index = 0;
-            }
-        }
 
         //формируем коллекцию нод с указанием их "веса", для последующей постройки дерева
         public BinaryTree(FrequencyTable frequency)
@@ -90,11 +18,12 @@ namespace Archiver
                     nodeList.Add(new TreeNode(frequency[i], (byte)i));
             }
             nodeList.Sort();
+            BuildTree();
         }
 
         //функция постройки полного древа на основании листа нод
         //создаем родительскую ноду, присваивая две самые малые к ней как родители, затем сортируем
-        public int BuildTree() 
+        private int BuildTree() 
         {
             while (nodeList.Count > 1)
             {
@@ -132,8 +61,7 @@ namespace Archiver
                 if (frequency[i] > 0)
                 {
                     SearchNode(treePath, nodeList[0], -1, (byte)i);
-                    short length = 0;
-                    short[] dump = treePath.GetDump(out length);
+                    short[] dump = treePath.GetDump(out short length);
                     short[] resizedDump = new short[length];
                     for (short t = 0; t < length; t++)
                     {
@@ -157,25 +85,21 @@ namespace Archiver
             {
                 decodeNode = nodeList[0];
             }
+
             if (childA == 1)
             {
                 decodeNode = decodeNode.childA;
-                if (decodeNode.childA == null || decodeNode.childB == null)
-                {
-                    short value = decodeNode.value;
-                    decodeNode = null;
-                    return value;
-                }
             }
             else
             {
                 decodeNode = decodeNode.childB;
-                if (decodeNode.childA == null && decodeNode.childB == null)
-                {
-                    short value = decodeNode.value;
-                    decodeNode = null;
-                    return value;
-                }
+            }
+
+            if (decodeNode.hasValue)
+            {
+                short value = decodeNode.value;
+                decodeNode = null;
+                return value;
             }
             return -1;
         }
