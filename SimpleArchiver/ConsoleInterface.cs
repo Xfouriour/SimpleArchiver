@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Archiver
+namespace SimpleArchiver
 {
     static class ConsoleInterface //класс взаимодействия с консолью
     {
@@ -21,16 +21,16 @@ namespace Archiver
 
         private static int CommandRecognize(string cmd)
         {
-            string[] parameters = cmd.Split(' ');
-            if (parameters.Length == 0)
+            string[] inputStrings = cmd.Split(' ');
+            if (inputStrings.Length == 0)
             {
                 return -1;
             }
-            switch (parameters[0])
+            switch (inputStrings[0])
             {
                 case "pack":
                     {
-                        if (parameters.Length < 2)
+                        if (inputStrings.Length < 2)
                         {
                             WriteLine("Необходимо указать путь к файлу");
                             return -1;
@@ -47,7 +47,7 @@ namespace Archiver
                     }
                 case "unpack":
                     {
-                        if (parameters.Length < 2)
+                        if (inputStrings.Length < 2)
                         {
                             WriteLine("Необходимо указать путь к файлу");
                             return -1;

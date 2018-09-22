@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Archiver
+namespace SimpleArchiver
 {
     class FileOperation //для чтения файла и записи результата
     {
@@ -62,6 +62,11 @@ namespace Archiver
         public bool IsReadMode()
         {
             return isReadMode;
+        }
+
+        public long GetPos()
+        {
+            return fileStream.Position;
         }
     }
 }
