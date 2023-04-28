@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SimpleArchiver
 {
@@ -47,7 +48,9 @@ namespace SimpleArchiver
             {
                 outputFile.WriteFile(BitConverter.GetBytes(frequency[i]), sizeof(long));
             }
-            
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
 
             //упаковываем
             int outPos = 0; //текущий индекс в выходном массиве в _битах_
@@ -58,9 +61,10 @@ namespace SimpleArchiver
                 for (byte i = 0; i < bytesRead; i++)
                 {
                     byte value = buf[i];
-                    for (byte t = 0; t < codeTable[value].Length; t++) //длина массива для каждого символа получаемого из buf
+                    short[] valueCode = codeTable[value];
+                    for (byte t = 0; t < valueCode.Length; t++) //длина массива для каждого символа получаемого из buf
                     {
-                        outBuf[outPos / 8] |= (byte)(codeTable[value][t] * Math.Pow(2, 7 - outPos % 8));
+                        outBuf[outPos / 8] |= (byte)(valueCode[t] * Math.Pow(2, 7 - outPos % 8));
                         outPos++;
                         if (outPos >= 32 * 8)
                         {
@@ -77,11 +81,16 @@ namespace SimpleArchiver
             {
                 outputFile.WriteFile(outBuf, outPos / 8 + ((outPos % 8 > 0) ? 1 : 0));
             }
+            long outputFileLength = outputFile.GetPos();
             outputFile.Reset();
             outputFile.WriteFile(new byte[] { (byte)((8 - outPos % 8) % 8)}, 1); //записываем количество пустых бит в конце
             outputFile.CloseFile();
             InputFile.CloseFile();
-            
+
+            timer.Stop();
+            long ms = timer.ElapsedMilliseconds;
+            Console.WriteLine("Average packing speed: " + (int)(outputFileLength / 1024d / (ms / 1000d)) + " kb\\s"); //debug
+
             return 1;
         }
 
@@ -119,8 +128,8 @@ namespace SimpleArchiver
             buf = new byte[size];
             byte[] outBuf = new byte[size];
 
-            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch(); //debug
-            timer.Start(); //debug
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
 
             bytesRead = inputFile.ReadFile(buf, size);
             while (bytesRead > 0)
@@ -150,9 +159,9 @@ namespace SimpleArchiver
                 outputFile.WriteFile(outBuf, outPos);
             }
 
-            timer.Stop(); //debug
-            float ms = timer.ElapsedMilliseconds; //debug
-            Console.WriteLine("Average unpacking speed: " + (int)((inputFile.GetPos() / 1024) / (ms / 1000)) + " kb\\s"); //debug
+            timer.Stop();
+            long ms = timer.ElapsedMilliseconds;
+            Console.WriteLine("Average unpacking speed: " + (int)(inputFile.GetPos() / 1024d / (ms / 1000d)) + " kb\\s"); //debug
 
             outputFile.CloseFile();
             inputFile.CloseFile();

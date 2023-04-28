@@ -37,7 +37,7 @@ namespace SimpleArchiver
         }
 
         //рекурсивный поиск пути к нужной ноде и запись в стек
-        private int SearchNode(Stack stack, TreeNode node, short childA, byte value)
+        private int SearchNode(Stack<short> stack, TreeNode node, short childA, byte value)
         {
             if (node == null)
                 return -1;
@@ -52,7 +52,7 @@ namespace SimpleArchiver
         //кодирование знака в биты, возвращаем биты в буфере и количество бит в результате
         public Dictionary<byte, short[]> GetCodeTable(FrequencyTable frequency)
         {
-            Stack treePath = new Stack(256);
+            Stack<short> treePath = new Stack<short>(256);
             //в path хранится путь до значения представляющий собой двоичный код байта
             Dictionary<byte, short[]> codeTable = new Dictionary<byte, short[]>();
 
@@ -61,14 +61,14 @@ namespace SimpleArchiver
                 if (frequency[i] > 0)
                 {
                     SearchNode(treePath, nodeList[0], -1, (byte)i);
-                    short[] dump = treePath.GetDump(out short length);
-                    short[] resizedDump = new short[length];
-                    for (short t = 0; t < length; t++)
+                    short[] dump = treePath.ToArray();
+                    short[] reversedDump = new short[dump.Length];
+                    for (int t = 0; t < dump.Length; t++)
                     {
-                        resizedDump[t] = dump[t];
+                        reversedDump[t] = dump[dump.Length - 1 - t];
                     }
-                    codeTable.Add((byte)i, resizedDump);
-                    treePath.Reset();
+                    codeTable.Add((byte)i, reversedDump);
+                    treePath.Clear();
                 }
             }
             //возвращаем таблицу с кодами
