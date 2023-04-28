@@ -7,7 +7,7 @@ namespace SimpleArchiver
 {
     static class Control //для управления сжатием
     {
-        const int size = 32; //size < 256
+        const int bufferSize = 32; //size < 256
         public static int Packing(string inputFilePath)
         {
             //открываем упаковываемый файл
@@ -23,10 +23,10 @@ namespace SimpleArchiver
 
             //создаем таблицу частот
             int bytesRead;
-            byte[] buf = new byte[size];
+            byte[] buf = new byte[bufferSize];
             FrequencyTable frequency = new FrequencyTable();
 
-            while((bytesRead = InputFile.ReadFile(buf, size)) > 0)
+            while((bytesRead = InputFile.ReadFile(buf, bufferSize)) > 0)
             {
                 for (int i = 0; i < bytesRead; i++)
                 {
@@ -55,7 +55,7 @@ namespace SimpleArchiver
             //упаковываем
             int outPos = 0; //текущий индекс в выходном массиве в _битах_
             byte[] outBuf = new byte[32]; //выходной массив
-            bytesRead = InputFile.ReadFile(buf, size);
+            bytesRead = InputFile.ReadFile(buf, bufferSize);
             while (bytesRead > 0)
             {
                 for (byte i = 0; i < bytesRead; i++)
@@ -75,7 +75,7 @@ namespace SimpleArchiver
                         }
                     }
                 }
-                bytesRead = InputFile.ReadFile(buf, size);
+                bytesRead = InputFile.ReadFile(buf, bufferSize);
             }
             if (outPos > 0) //запись оставшихся бит
             {
@@ -125,33 +125,33 @@ namespace SimpleArchiver
             FileOperation outputFile = new FileOperation(inputFilePath.Substring(0, inputFilePath.Length - 4), false); //убираем расширение .pac
             
             int outPos = 0, outVal;
-            buf = new byte[size];
-            byte[] outBuf = new byte[size];
+            buf = new byte[bufferSize];
+            byte[] outBuf = new byte[bufferSize];
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
-            bytesRead = inputFile.ReadFile(buf, size);
+            bytesRead = inputFile.ReadFile(buf, bufferSize);
             while (bytesRead > 0)
             {
                 int emptyBits = endBytes[0] * inputFile.EndOfFile();
                 for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
                 {
-                    byte value = buf[i >> 3];
-                    byte bit = (byte)(((buf[i >> 3] & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
+                    byte byteValue = buf[i >> 3];
+                    byte bit = (byte)(((byteValue & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
                     outVal = tree.Decode(bit); //поочередно отправляем биты расшифровщику. если результат положительный - мы получили значение
                     if (outVal >= 0)
                     {
                         outBuf[outPos] = (byte)outVal;
                         outPos++;
-                        if (outPos >= size)
+                        if (outPos >= bufferSize)
                         {
                             outPos = 0;
-                            outputFile.WriteFile(outBuf, size);
+                            outputFile.WriteFile(outBuf, bufferSize);
                         }
                     }
                 }
-                bytesRead = inputFile.ReadFile(buf, size);
+                bytesRead = inputFile.ReadFile(buf, bufferSize);
             }
             //записываем оставшиеся байты, закрываем файлы
             if (outPos > 0)
