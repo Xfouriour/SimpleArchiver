@@ -64,7 +64,7 @@ namespace SimpleArchiver
                     short[] valueCode = codeTable[value];
                     for (byte t = 0; t < valueCode.Length; t++) //длина массива для каждого символа получаемого из buf
                     {
-                        outBuf[outPos / 8] |= (byte)(valueCode[t] * (1 << (7 - outPos % 8)));
+                        outBuf[outPos >> 3] |= (byte)(valueCode[t] * (1 << (7 - outPos % 8)));
                         outPos++;
                         if (outPos >= 32 * 8)
                         {
