@@ -7,7 +7,7 @@ namespace SimpleArchiver
 {
     static class Control //для управления сжатием
     {
-        const int bufferSize = 32; //size < 256
+        const int size = 32; //size < 256
         public static int Packing(string inputFilePath)
         {
             //открываем упаковываемый файл
@@ -23,10 +23,10 @@ namespace SimpleArchiver
 
             //создаем таблицу частот
             int bytesRead;
-            byte[] buf = new byte[bufferSize];
+            byte[] buf = new byte[size];
             FrequencyTable frequency = new FrequencyTable();
 
-            while((bytesRead = InputFile.ReadFile(buf, bufferSize)) > 0)
+            while((bytesRead = InputFile.ReadFile(buf, size)) > 0)
             {
                 for (int i = 0; i < bytesRead; i++)
                 {
@@ -55,7 +55,7 @@ namespace SimpleArchiver
             //упаковываем
             int outPos = 0; //текущий индекс в выходном массиве в _битах_
             byte[] outBuf = new byte[32]; //выходной массив
-            bytesRead = InputFile.ReadFile(buf, bufferSize);
+            bytesRead = InputFile.ReadFile(buf, size);
             while (bytesRead > 0)
             {
                 for (byte i = 0; i < bytesRead; i++)
@@ -64,7 +64,7 @@ namespace SimpleArchiver
                     short[] valueCode = codeTable[value];
                     for (byte t = 0; t < valueCode.Length; t++) //длина массива для каждого символа получаемого из buf
                     {
-                        outBuf[outPos / 8] |= (byte)(valueCode[t] * Math.Pow(2, 7 - outPos % 8));
+                        outBuf[outPos / 8] |= (byte)(valueCode[t] * (1 << (7 - outPos % 8)));
                         outPos++;
                         if (outPos >= 32 * 8)
                         {
@@ -75,7 +75,7 @@ namespace SimpleArchiver
                         }
                     }
                 }
-                bytesRead = InputFile.ReadFile(buf, bufferSize);
+                bytesRead = InputFile.ReadFile(buf, size);
             }
             if (outPos > 0) //запись оставшихся бит
             {
@@ -125,33 +125,33 @@ namespace SimpleArchiver
             FileOperation outputFile = new FileOperation(inputFilePath.Substring(0, inputFilePath.Length - 4), false); //убираем расширение .pac
             
             int outPos = 0, outVal;
-            buf = new byte[bufferSize];
-            byte[] outBuf = new byte[bufferSize];
+            buf = new byte[size];
+            byte[] outBuf = new byte[size];
 
             Stopwatch timer = new Stopwatch();
             timer.Start();
 
-            bytesRead = inputFile.ReadFile(buf, bufferSize);
+            bytesRead = inputFile.ReadFile(buf, size);
             while (bytesRead > 0)
             {
                 int emptyBits = endBytes[0] * inputFile.EndOfFile();
                 for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
                 {
-                    byte byteValue = buf[i >> 3];
-                    byte bit = (byte)(((byteValue & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
+                    byte value = buf[i >> 3];
+                    byte bit = (byte)(((buf[i >> 3] & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
                     outVal = tree.Decode(bit); //поочередно отправляем биты расшифровщику. если результат положительный - мы получили значение
                     if (outVal >= 0)
                     {
                         outBuf[outPos] = (byte)outVal;
                         outPos++;
-                        if (outPos >= bufferSize)
+                        if (outPos >= size)
                         {
                             outPos = 0;
-                            outputFile.WriteFile(outBuf, bufferSize);
+                            outputFile.WriteFile(outBuf, size);
                         }
                     }
                 }
-                bytesRead = inputFile.ReadFile(buf, bufferSize);
+                bytesRead = inputFile.ReadFile(buf, size);
             }
             //записываем оставшиеся байты, закрываем файлы
             if (outPos > 0)
