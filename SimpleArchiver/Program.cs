@@ -7,7 +7,7 @@ namespace SimpleArchiver
     {
         static void Main(string[] args)
         {
-            while(ConsoleInterface.ConsoleRequest() != 0);
+            while (ConsoleInterface.ConsoleRequest() != 0) ;
         }
     }
 

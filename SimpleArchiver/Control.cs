@@ -26,7 +26,7 @@ namespace SimpleArchiver
             byte[] buf = new byte[size];
             FrequencyTable frequency = new FrequencyTable();
 
-            while((bytesRead = InputFile.ReadFile(buf, size)) > 0)
+            while ((bytesRead = InputFile.ReadFile(buf, size)) > 0)
             {
                 for (int i = 0; i < bytesRead; i++)
                 {
@@ -83,7 +83,7 @@ namespace SimpleArchiver
             }
             long outputFileLength = outputFile.GetPos();
             outputFile.Reset();
-            outputFile.WriteFile(new byte[] { (byte)((8 - outPos % 8) % 8)}, 1); //записываем количество пустых бит в конце
+            outputFile.WriteFile(new byte[] { (byte)((8 - outPos % 8) % 8) }, 1); //записываем количество пустых бит в конце
             outputFile.CloseFile();
             InputFile.CloseFile();
 
@@ -123,7 +123,7 @@ namespace SimpleArchiver
 
             //распаковываем
             FileOperation outputFile = new FileOperation(inputFilePath.Substring(0, inputFilePath.Length - 4), false); //убираем расширение .pac
-            
+
             int outPos = 0, outVal;
             buf = new byte[size];
             byte[] outBuf = new byte[size];
@@ -134,7 +134,7 @@ namespace SimpleArchiver
             bytesRead = inputFile.ReadFile(buf, size);
             while (bytesRead > 0)
             {
-                int emptyBits = endBytes[0] * inputFile.EndOfFile();
+                int emptyBits = endBytes[0] * (inputFile.EndOfFile() ? 1 : 0);
                 for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
                 {
                     byte currentValue = buf[i >> 3];

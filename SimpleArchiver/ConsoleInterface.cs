@@ -66,7 +66,7 @@ namespace SimpleArchiver
                     {
                         WriteLine("Основные команды:");
                         WriteLine("pack <путь_к_файлу> - упаковка указанного файла");
-                        WriteLine("unpack <путь к_файлу> - распаковка указанного файла");
+                        WriteLine("unpack <путь_к_файлу> - распаковка указанного файла");
                         WriteLine("exit - выход");
                         return 1;
                     }

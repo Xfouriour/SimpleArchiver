@@ -22,15 +22,11 @@ namespace SimpleArchiver
             }
         }
 
-        public short EndOfFile()
+        public bool EndOfFile()
         {
-            if (fileStream.Position == fileStream.Length)
-            {
-                return 1;
-            }
-            return 0;
+            return fileStream.Position == fileStream.Length;
         }
-        
+
         public int ReadFile(byte[] buffer, int size)
         {
             if (!isReadMode)
@@ -46,7 +42,7 @@ namespace SimpleArchiver
             fileStream.Write(buffer, 0, size);
             return 1;
         }
-        
+
         public int Reset()
         {
             fileStream.Position = 0;
@@ -58,7 +54,7 @@ namespace SimpleArchiver
             fileStream.Close();
             return 1;
         }
-        
+
         public bool IsReadMode()
         {
             return isReadMode;

@@ -23,7 +23,7 @@ namespace SimpleArchiver
 
         //функция постройки полного древа на основании листа нод
         //создаем родительскую ноду, присваивая две самые малые к ней как родители, затем сортируем
-        private int BuildTree() 
+        private void BuildTree()
         {
             while (nodeList.Count > 1)
             {
@@ -33,7 +33,6 @@ namespace SimpleArchiver
                 nodeList.Add(new TreeNode(A.weight + B.weight, A, B));
                 nodeList.Sort();
             }
-            return 0;
         }
 
         //рекурсивный поиск пути к нужной ноде и запись в стек
