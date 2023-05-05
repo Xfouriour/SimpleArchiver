@@ -64,7 +64,7 @@ namespace SimpleArchiver
                     short[] valueCode = codeTable[value];
                     for (byte t = 0; t < valueCode.Length; t++) //длина массива для каждого символа получаемого из buf
                     {
-                        outBuf[outPos >> 3] |= (byte)(valueCode[t] * (1 << (7 - outPos % 8)));
+                        outBuf[outPos >> 3] |= (byte)(valueCode[t] * (1 << (7 - outPos & 7)));
                         outPos++;
                         if (outPos >= 32 * 8)
                         {
@@ -108,10 +108,10 @@ namespace SimpleArchiver
 
             int bytesRead;
             byte[] endBytes = new byte[1]; //получаем число байт в конце
-            bytesRead = inputFile.ReadFile(endBytes, 1);
+            inputFile.ReadFile(endBytes, 1);
             FrequencyTable frequency = new FrequencyTable(); //получаем таблицу частот
             byte[] buf = new byte[2048];
-            if ((bytesRead = inputFile.ReadFile(buf, 2048)) < 2048)
+            if (inputFile.ReadFile(buf, 2048) < 2048)
                 return -1;
             for (short i = 0; i < 256; i++)
             {
@@ -137,8 +137,8 @@ namespace SimpleArchiver
                 int emptyBits = endBytes[0] * inputFile.EndOfFile();
                 for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
                 {
-                    byte value = buf[i >> 3];
-                    byte bit = (byte)(((buf[i >> 3] & 1 << (7 - i % 8)) >= 1) ? 1 : 0); //получаем значение бита под номером i
+                    byte currentValue = buf[i >> 3];
+                    byte bit = (byte)(((currentValue & 1 << (7 - i & 7)) >= 1) ? 1 : 0); //получаем значение бита под номером i
                     outVal = tree.Decode(bit); //поочередно отправляем биты расшифровщику. если результат положительный - мы получили значение
                     if (outVal >= 0)
                     {
