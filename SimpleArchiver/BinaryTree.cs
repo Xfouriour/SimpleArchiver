@@ -78,7 +78,7 @@ namespace SimpleArchiver
         //выполняется 1 раз на каждый бит
         //с каждым вызовом идем в дерево дальше, выбирая направление в зависмости от полученного параметра
         //входные параметры 1 и 0
-        public short Decode(byte childA)
+        public short Decode(int childA)
         {
             if (decodeNode == null)
             {

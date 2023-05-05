@@ -135,10 +135,11 @@ namespace SimpleArchiver
             while (bytesRead > 0)
             {
                 int emptyBits = endBytes[0] * (inputFile.EndOfFile() ? 1 : 0);
-                for (short i = 0; i < bytesRead * 8 - emptyBits; i++) //нумеруем _биты_
+                int bitsToRead = bytesRead * 8 - emptyBits;
+                for (short i = 0; i < bitsToRead; i++) //нумеруем _биты_
                 {
                     byte currentValue = buf[i >> 3];
-                    byte bit = (byte)(((currentValue & 1 << (7 - i & 7)) >= 1) ? 1 : 0); //получаем значение бита под номером i
+                    int bit = ((currentValue & 1 << (7 - i & 7)) >= 1) ? 1 : 0; //получаем значение бита под номером i
                     outVal = tree.Decode(bit); //поочередно отправляем биты расшифровщику. если результат положительный - мы получили значение
                     if (outVal >= 0)
                     {
